@@ -11,7 +11,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.get('/api/books/', (req, res, next) => {
+app.get('/api/books', (req, res, next) => {
     const books = [
         {
             _id: 'abcd',
@@ -47,6 +47,11 @@ app.get('/api/books/', (req, res, next) => {
         }
     ]
     res.status(200).json(books);
+});
+
+app.post('/api/books', (req, res, next) => {
+    console.log(req.body);
+    res.status(201).json({ message: 'Livre créé.' });
 });
 
 module.exports = app;
