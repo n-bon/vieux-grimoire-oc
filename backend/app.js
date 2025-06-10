@@ -1,12 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 const Book = require('./models/book');
 
 const app = express();
 app.use(express.json());
 
-mongoose.connect('mongodb+srv://globe007:Castres-Nantes-2408@oc-grimoire.wprcwc8.mongodb.net/?retryWrites=true&w=majority&appName=oc-grimoire',
+mongoose.connect(process.env.MONGODB_URI,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
