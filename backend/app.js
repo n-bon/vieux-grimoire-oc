@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
+const Book = require('./models/book');
+
 const app = express();
 app.use(express.json());
 
@@ -21,6 +23,15 @@ app.use((req, res, next) => {
     next();
 });
 
+
+//----- BOOKS ROUTES
+//Create
+app.post('/api/books', (req, res, next) => {
+    console.log(req.body);
+    res.status(201).json({ message: 'Livre créé.' });
+});
+
+//Read
 app.get('/api/books', (req, res, next) => {
     const books = [
         {
@@ -58,10 +69,9 @@ app.get('/api/books', (req, res, next) => {
     ]
     res.status(200).json(books);
 });
+//update
 
-app.post('/api/books', (req, res, next) => {
-    console.log(req.body);
-    res.status(201).json({ message: 'Livre créé.' });
-});
+//delete
+
 
 module.exports = app;
