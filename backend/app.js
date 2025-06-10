@@ -4,7 +4,7 @@ const app = express();
 
 
 app.use((req, res, next) => {
-    res.json({ message : 'Requête bien reçue dans le fichier app.js 2'});
+    res.json({ message : 'Requête bien reçue dans le fichier app.js 4'});
     next();
 });
 
