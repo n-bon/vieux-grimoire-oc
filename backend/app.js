@@ -6,6 +6,8 @@ app.use(express.json());
 
 const bookRoutes = require('./routes/book');
 
+//Connecting to mongo database
+// /!\ Hidden connection string
 mongoose.connect(process.env.MONGODB_URI,
     {
         useNewUrlParser: true,
@@ -13,8 +15,9 @@ mongoose.connect(process.env.MONGODB_URI,
     }
 )
     .then(() => console.log('Connexion to mongoDB OK.'))
-    .catch(() => console.log('Connexion to mongoDB KO.'))
+    .catch(() => console.log('Connexion to mongoDB KO.'));
 
+//CROSS origin management
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
