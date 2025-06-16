@@ -10,7 +10,11 @@ router.post('/', auth, multer, bookCtrl.createBook);
 
 //Read (Public routes)
 router.get('/', bookCtrl.readAllBooks);
-router.get('/:id', bookCtrl.readOneBook)
+router.get('/bestrating', bookCtrl.readBestRatedBooks);
+
+//keep this route bellow all other get routes
+router.get('/:id', bookCtrl.readOneBook);
+
 //Update
 
 //Delete
