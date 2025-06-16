@@ -69,6 +69,16 @@ exports.readAllBooks = (req, res, next) => {
     .catch((error) => res.status(400).json({ error }));
 };
 
+exports.readOneBook = (req, res, next) => {
+    Book.findById(req.params.id)
+        .then((book) => {
+            if (!book) {
+                return res.status(404).json({ message: 'Book not found' });
+            }
+            res.status(200).json(book);
+        })
+        .catch((error) => res.status(400).json({ error }));
+}
 //-----------------UPDATE
 
 //-----------------DELETE

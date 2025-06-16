@@ -5,11 +5,12 @@ const auth = require('../middleware/auth');
 const multer = require('../middleware/multer-config');
 const bookCtrl = require('../controllers/book');
 
-//Create
+//Create (Authentified)
 router.post('/', auth, multer, bookCtrl.createBook);
 
-//Read
+//Read (Public routes)
 router.get('/', bookCtrl.readAllBooks);
+router.get('/:id', bookCtrl.readOneBook)
 //Update
 
 //Delete
