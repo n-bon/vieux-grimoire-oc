@@ -1,8 +1,8 @@
+const sharp = require('sharp');
 const Book = require('../models/book');
 
 exports.createBook = (req, res, next) => {
-    console.log(req.body);
-    res.status(201).json({ message: 'Livre créé.' });
+
 }
 
 exports.readAllBooks = (req, res, next) => {
