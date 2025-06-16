@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-//Adding auth middleware to routes that require authentification
 const auth = require('../middleware/auth');
 const multer = require('../middleware/multer-config');
 const bookCtrl = require('../controllers/book');
@@ -11,9 +10,9 @@ router.post('/', auth, multer, bookCtrl.createBook);
 
 //Read
 router.get('/', bookCtrl.readAllBooks);
-//update
+//Update
 
-//delete
+//Delete
 
 
 module.exports = router;
