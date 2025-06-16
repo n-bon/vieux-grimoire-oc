@@ -5,6 +5,7 @@ const app = express();
 app.use(express.json());
 
 const bookRoutes = require('./routes/book');
+const userRoutes = require('./routes/user');
 
 //Connecting to mongo database
 // /!\ Hidden connection string
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 
 //----- BOOKS ROUTES
 app.use('/api/books', bookRoutes);
-
+//------ USERS ROUTES
+app.use('/api/auth', userRoutes);
 
 module.exports = app;
