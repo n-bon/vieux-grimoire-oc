@@ -70,7 +70,7 @@ exports.readAllBooks = (req, res, next) => {
 };
 
 exports.readOneBook = (req, res, next) => {
-    Book.findById(req.params.id)
+    Book.findById(req.params.id).select('+userId')
         .then((book) => {
             if (!book) {
                 return res.status(404).json({ message: 'Book not found' });
@@ -90,3 +90,26 @@ exports.readBestRatedBooks = (req, res, next) => {
 //-----------------UPDATE
 
 //-----------------DELETE
+exports.deleteBook = (req, res, next) => {
+    Book.findById(req.params.id)
+        .then(book => {
+            if (!book) {
+                return res.status(404).json({ message: 'Book not found' });
+            }
+            if (book.userId !== req.auth.userId) {
+                return res.status(403).json({ message: 'Action not permitted' });
+            }
+
+            const imagePath = path.join(__dirname, '..', 'images', path.basename(book.imageURL));
+            fs.unlink(imagePath, (err) => {
+                if (err) {
+                    console.error('Could not delete image : ', err);
+                }
+
+                Book.deleteOne({ _id: req.params.id })
+                    .then(() => res.status(200).json({ message : 'Book deleted'}))
+                    .catch(error => res.status(400).json({ error }));
+            });
+        })
+        .catch(error => res.status(500).json({ error }));
+};
