@@ -7,6 +7,7 @@ const bookCtrl = require('../controllers/book');
 
 //Create (Authentified)
 router.post('/', auth, multer, bookCtrl.createBook);
+router.post('/:id/rating', auth, bookCtrl.rateBook);
 
 //Read (Public routes)
 router.get('/', bookCtrl.readAllBooks);
