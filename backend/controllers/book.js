@@ -32,7 +32,7 @@ exports.createBook = (req, res, next) => {
         .then(() => {
             fs.unlink(inputPath, (unlinkErr) => {
                 if (unlinkErr) {
-                    console.error('Error while trying to delete the original file : ', unlinkErr);
+                    console.error('Could not delete the original file : ', unlinkErr);
                 }
             });
             //2-- formatting data
@@ -102,7 +102,7 @@ exports.rateBook = (req, res, next) => {
             }
             const alreadyRated = book.ratings.some(r => r.userId === userId);
             if (alreadyRated) {
-                return res.status(403).json({ message: 'You have already evaluated this book' })
+                return res.status(403).json({ message: 'Action not permitted' })
             }
 
             book.ratings.push({ userId, grade: ratingValue });
@@ -117,6 +117,71 @@ exports.rateBook = (req, res, next) => {
         .catch(error => res.status(500).json({ error }));
 };
 //-----------------UPDATE
+
+exports.updateBook = (req, res, next) => {
+    const bookId = req.params.id;
+
+    Book.findById(bookId)
+        .then(book => {
+            if (!book) {
+                return res.status(404).json({ message: 'Book not found'});
+            }
+            if (book.userId !== req.auth.userId) {
+                return res.status(403).json({ message: 'Action not permitted' })
+            }
+
+            let updatedBookData;
+
+            if (req.file) {
+                const parsedData = JSON.parse(req.body.book);
+                updatedBookData = {
+                    title: parsedData.title,
+                    author: parsedData.author,
+                    year: parsedData.year,
+                    genre: parsedData.genre
+                };
+                const originalFilename = req.file.filename;
+                const inputPath = path.join(__dirname, '..', 'images', originalFilename);
+                const filenameWithoutExt = path.parse(originalFilename).name;
+                const outputFilename = filenameWithoutExt + '.webp';
+                const outputPath = path.join(__dirname, '..', 'images', outputFilename);
+
+                sharp(inputPath)
+                    .resize(976, 1190)
+                    .toFormat('webp')
+                    .toFile(outputPath)
+                    .then(() => {
+                        fs.unlink(inputPath, err => {
+                            if (err) console.error('Could not delete the original file', err);
+                        });
+
+                        const oldImagePath = path.join(__dirname, '..', 'images', path.basename(book.imageUrl));
+                        fs.unlink(oldImagePath, err => {
+                            if (err) console.error('Could not delete image :', err);
+                        });
+
+                        updatedBookData.imageUrl = `${req.protocol}://${req.get('host')}/images/${outputFilename}`;
+
+                        Book.updateOne ({ _id: bookId }, { $set: updatedBookData })
+                            .then(() => res.status(200).json({ message: 'Book updated' }))
+                            .catch(error => res.status(400).json({ error }));
+                    })
+                    .catch(error => res.status(500).json({ error }));
+            } else {
+                updatedBookData = {
+                    title: req.body.title,
+                    author: req.body.author,
+                    year: req.body.year,
+                    genre: req.body.genre                   
+                };
+
+                Book.updateOne ({ _id: bookId }, { $set: updatedBookData })
+                    .then(() => res.status(200).json({ message: 'Book updated' }))
+                    .catch(error => res.status(400).json({ error }));
+            }
+        })
+        .catch(error => res.status(500).json({ error }));
+};
 
 //-----------------DELETE
 exports.deleteBook = (req, res, next) => {
