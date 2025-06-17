@@ -100,7 +100,7 @@ exports.deleteBook = (req, res, next) => {
                 return res.status(403).json({ message: 'Action not permitted' });
             }
 
-            const imagePath = path.join(__dirname, '..', 'images', path.basename(book.imageURL));
+            const imagePath = path.join(__dirname, '..', 'images', path.basename(book.imageUrl));
             fs.unlink(imagePath, (err) => {
                 if (err) {
                     console.error('Could not delete image : ', err);

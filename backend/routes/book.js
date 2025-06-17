@@ -18,6 +18,6 @@ router.get('/:id', bookCtrl.readOneBook);
 //Update
 
 //Delete
-
+router.delete('/:id', auth, bookCtrl.deleteBook);
 
 module.exports = router;
