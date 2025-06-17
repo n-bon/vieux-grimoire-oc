@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+//objects used in the array 'ratings'
 const ratingSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     grade: { type: Number, required: true, min: 0, max: 5 }
