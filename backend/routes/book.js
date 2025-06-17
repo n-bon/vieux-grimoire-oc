@@ -1,19 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
-//Adding auth middleware to routes that require authentification
 const auth = require('../middleware/auth');
-
+const multer = require('../middleware/multer-config');
 const bookCtrl = require('../controllers/book');
 
-//Create
-router.post('/', auth, bookCtrl.createBook);
+//Create (Authentified)
+router.post('/', auth, multer, bookCtrl.createBook);
 
-//Read
+//Read (Public routes)
 router.get('/', bookCtrl.readAllBooks);
-//update
+router.get('/bestrating', bookCtrl.readBestRatedBooks);
 
-//delete
+//keep this route bellow all other get routes
+router.get('/:id', bookCtrl.readOneBook);
 
+//Update
+
+//Delete
+router.delete('/:id', auth, bookCtrl.deleteBook);
 
 module.exports = router;

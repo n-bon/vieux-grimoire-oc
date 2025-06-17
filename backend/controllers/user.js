@@ -29,9 +29,9 @@ exports.login = (req, res, next) => {
                         return res.status(401).json({ message: 'Email or password incorrect'});
                     }
                     res.status(200).json({
-                        userid: user._id,
+                        userId: user._id,
                         token: jwt.sign(
-                            { userId: user._id },
+                            { user: { userId: user._id.toString() } },
                             'TEMPORARY_SECRET_KEY',
                             { expiresIn : '72h' }
                         )
