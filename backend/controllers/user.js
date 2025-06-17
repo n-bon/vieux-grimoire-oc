@@ -31,7 +31,7 @@ exports.login = (req, res, next) => {
                     res.status(200).json({
                         userId: user._id,
                         token: jwt.sign(
-                            { userId: user._id },
+                            { user: { userId: user._id.toString() } },
                             'TEMPORARY_SECRET_KEY',
                             { expiresIn : '72h' }
                         )
