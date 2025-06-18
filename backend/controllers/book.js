@@ -84,7 +84,7 @@ exports.readAllBooks = (req, res, next) => {
 };
 
 exports.readOneBook = (req, res, next) => {
-    Book.findById(req.params.id).select('+userId')
+    Book.findById(req.params.id)
         .then((book) => {
             if (!book) {
                 return res.status(404).json({ message: 'Book not found' });
