@@ -25,22 +25,15 @@ exports.createBook = (req, res, next) => {
  
     //if book data is valid : 
     //1-- converting & saving image
-    const originalFilename = req.file.filename;
-    const inputPath = path.join(__dirname, '..', 'images', originalFilename);
-    const filenameWithoutExt = path.parse(originalFilename).name;
-    const outputFilename = filenameWithoutExt + '.webp';
+    const nameWithoutExt = path.parse(req.file.originalname).name.split(' ').join('_');
+    const outputFilename = nameWithoutExt + Date.now() + '.webp';
     const outputPath = path.join(__dirname, '..', 'images', outputFilename);
 
-    sharp(inputPath)
+    sharp(req.file.buffer)
         .resize(976, 1190)
         .toFormat('webp')
         .toFile(outputPath)
         .then(() => {
-            fs.unlink(inputPath, (unlinkErr) => {
-                if (unlinkErr) {
-                    console.error('Could not delete the original file : ', unlinkErr);
-                }
-            });
             //2-- formatting data
             const imageURL = `${req.protocol}://${req.get('host')}/images/${outputFilename}`;
             const year = parseInt(bookObject.year);
@@ -145,27 +138,23 @@ exports.updateBook = (req, res, next) => {
             if (req.file) {
                 //if request contains file
                 const parsedData = JSON.parse(req.body.book);
+                const year = parseInt(parsedData.year);
                 updatedBookData = {
                     title: parsedData.title,
                     author: parsedData.author,
-                    year: parsedData.year,
+                    year: year,
                     genre: parsedData.genre
                 };
                 //file management
-                const originalFilename = req.file.filename;
-                const inputPath = path.join(__dirname, '..', 'images', originalFilename);
-                const filenameWithoutExt = path.parse(originalFilename).name;
-                const outputFilename = filenameWithoutExt + '.webp';
+                const nameWithoutExt = path.parse(req.file.originalname).name.split(' ').join('_');
+                const outputFilename = nameWithoutExt + Date.now() + '.webp';
                 const outputPath = path.join(__dirname, '..', 'images', outputFilename);
 
-                sharp(inputPath)
+                sharp(req.file.buffer)
                     .resize(976, 1190)
                     .toFormat('webp')
                     .toFile(outputPath)
                     .then(() => {
-                        fs.unlink(inputPath, err => {
-                            if (err) console.error('Could not delete the original file', err);
-                        });
 
                         const oldImagePath = path.join(__dirname, '..', 'images', path.basename(book.imageUrl));
                         fs.unlink(oldImagePath, err => {
@@ -181,10 +170,11 @@ exports.updateBook = (req, res, next) => {
                     .catch(error => res.status(500).json({ error }));
             } else {
                 //if request does not contain file
+                const year = parseInt(req.body.year)
                 updatedBookData = {
                     title: req.body.title,
                     author: req.body.author,
-                    year: req.body.year,
+                    year: year,
                     genre: req.body.genre                   
                 };
 
