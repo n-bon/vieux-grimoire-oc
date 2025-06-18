@@ -17,83 +17,39 @@ exports.createBook = (req, res, next) => {
     } catch (parseError) {
         return res.status(400).json({ message : 'Book data not valid' });
     }
-    //if book data is valid : 
-    //1-- converting & saving image
-    const originalFilename = req.file.filename;
-    const inputPath = path.join(__dirname, '..', 'images', originalFilename);
-    const filenameWithoutExt = path.parse(originalFilename).name;
-    const outputFilename = filenameWithoutExt + '.webp';
-    const outputPath = path.join(__dirname, '..', 'images', outputFilename);
+    //check rating
+    const initialRating = parseFloat(bookObject.ratings?.[0]?.grade);
+    if (isNaN(initialRating) || initialRating < 1 || initialRating > 5 ) {
+        return res.status(400).json({ message: 'Grade must be between 1 and 5' });
+    }
+ 
+    const imageURL = `${req.protocol}://${req.get('host')}/images/${req.processedImageFilename}`;
+    const year = parseInt(bookObject.year);
+    const userId = req.auth.userId;
 
-    sharp(inputPath)
-        .resize(976, 1190)
-        .toFormat('webp')
-        .toFile(outputPath)
-        .then(() => {
-            fs.unlink(inputPath, (unlinkErr) => {
-                if (unlinkErr) {
-                    console.error('Could not delete the original file : ', unlinkErr);
-                }
-            });
-            //2-- formatting data
-            const imageURL = `${req.protocol}://${req.get('host')}/images/${outputFilename}`;
-            const initialRating = parseFloat(bookObject.ratings?.[0]?.grade)
-            const year = parseInt(bookObject.year);
-            const userId = req.auth.userId;
-
-            const book = new Book ({
-                userId: userId,
-                title: bookObject.title,
-                author: bookObject.author,
-                imageUrl: imageURL,
-                year: year,
-                genre: bookObject.genre,
-                ratings: [
-                    { userId: userId, grade: initialRating }
-                ],
-                averageRating: initialRating
-            });
-            return book.save();
-        })
-        .then(() => res.status(201).json({ message : "Book created"}))
-        .catch((error) => {
-            res.status(400).json({ error });
-        });
-};
-
-//--------------------READ
-
-exports.readAllBooks = (req, res, next) => {
-   Book.find()
-    .then((books) => res.status(200).json(books))
-    .catch((error) => res.status(400).json({ error }));
-};
-
-exports.readOneBook = (req, res, next) => {
-    Book.findById(req.params.id).select('+userId')
-        .then((book) => {
-            if (!book) {
-                return res.status(404).json({ message: 'Book not found' });
-            }
-            res.status(200).json(book);
-        })
-        .catch((error) => res.status(400).json({ error }));
-}
-
-exports.readBestRatedBooks = (req, res, next) => {
-    Book.find()
-        .sort({ averageRating: -1 })
-        .limit(3)
-        .then((books) => res.status(200).json(books))
-        .catch((error) => res.status(400).json({ error }));
+    const book = new Book ({
+        userId: userId,
+        title: bookObject.title,
+        author: bookObject.author,
+        imageUrl: imageURL,
+        year: year,
+        genre: bookObject.genre,
+        ratings: [
+            { userId: userId, grade: initialRating }
+        ],
+        averageRating: initialRating
+    });
+    book.save()
+        .then(() => res.status(201).json({ message: "Book created" }))
+        .catch(error => res.status(400).json({ error }));
 };
 
 exports.rateBook = (req, res, next) => {
     const userId = req.auth.userId;
     const ratingValue = parseInt(req.body.rating, 10);
     //checking grade
-    if (isNaN(ratingValue) || ratingValue < 0 || ratingValue > 5 ) {
-        return res.status(400).json({ message: 'Grade must be between 0 and 5' });
+    if (isNaN(ratingValue) || ratingValue < 1 || ratingValue > 5 ) {
+        return res.status(400).json({ message: 'Grade must be between 1 and 5' });
     }
     Book.findById(req.params.id)
         .then(book => {
@@ -118,6 +74,34 @@ exports.rateBook = (req, res, next) => {
         })
         .catch(error => res.status(500).json({ error }));
 };
+
+//--------------------READ
+
+exports.readAllBooks = (req, res, next) => {
+   Book.find()
+    .then((books) => res.status(200).json(books))
+    .catch((error) => res.status(400).json({ error }));
+};
+
+exports.readOneBook = (req, res, next) => {
+    Book.findById(req.params.id)
+        .then((book) => {
+            if (!book) {
+                return res.status(404).json({ message: 'Book not found' });
+            }
+            res.status(200).json(book);
+        })
+        .catch((error) => res.status(400).json({ error }));
+}
+
+exports.readBestRatedBooks = (req, res, next) => {
+    Book.find()
+        .sort({ averageRating: -1 })
+        .limit(3)
+        .then((books) => res.status(200).json(books))
+        .catch((error) => res.status(400).json({ error }));
+};
+
 //-----------------UPDATE
 
 exports.updateBook = (req, res, next) => {
@@ -136,56 +120,36 @@ exports.updateBook = (req, res, next) => {
 
             let updatedBookData;
 
-            if (req.file) {
+            if (req.file && req.processedImageFilename) {
                 //if request contains file
                 const parsedData = JSON.parse(req.body.book);
+                const year = parseInt(parsedData.year);
                 updatedBookData = {
                     title: parsedData.title,
                     author: parsedData.author,
-                    year: parsedData.year,
-                    genre: parsedData.genre
+                    year: year,
+                    genre: parsedData.genre,
+                    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.processedImageFilename}`
                 };
-                //file management
-                const originalFilename = req.file.filename;
-                const inputPath = path.join(__dirname, '..', 'images', originalFilename);
-                const filenameWithoutExt = path.parse(originalFilename).name;
-                const outputFilename = filenameWithoutExt + '.webp';
-                const outputPath = path.join(__dirname, '..', 'images', outputFilename);
 
-                sharp(inputPath)
-                    .resize(976, 1190)
-                    .toFormat('webp')
-                    .toFile(outputPath)
-                    .then(() => {
-                        fs.unlink(inputPath, err => {
-                            if (err) console.error('Could not delete the original file', err);
-                        });
+                const oldImagePath = path.join(__dirname, '..', 'images', path.basename(book.imageUrl));
+                fs.unlink(oldImagePath, err => {
+                    if (err) console.error('Could not delete image :', err);
+                });
 
-                        const oldImagePath = path.join(__dirname, '..', 'images', path.basename(book.imageUrl));
-                        fs.unlink(oldImagePath, err => {
-                            if (err) console.error('Could not delete image :', err);
-                        });
-
-                        updatedBookData.imageUrl = `${req.protocol}://${req.get('host')}/images/${outputFilename}`;
-
-                        Book.updateOne ({ _id: bookId }, { $set: updatedBookData })
-                            .then(() => res.status(200).json({ message: 'Book updated' }))
-                            .catch(error => res.status(400).json({ error }));
-                    })
-                    .catch(error => res.status(500).json({ error }));
             } else {
                 //if request does not contain file
+                const year = parseInt(req.body.year)
                 updatedBookData = {
                     title: req.body.title,
                     author: req.body.author,
-                    year: req.body.year,
+                    year: year,
                     genre: req.body.genre                   
                 };
-
-                Book.updateOne ({ _id: bookId }, { $set: updatedBookData })
-                    .then(() => res.status(200).json({ message: 'Book updated' }))
-                    .catch(error => res.status(400).json({ error }));
             }
+            Book.updateOne ({ _id: bookId }, { $set: updatedBookData })
+                .then(() => res.status(200).json({ message: 'Book updated' }))
+                .catch(error => res.status(400).json({ error }));
         })
         .catch(error => res.status(500).json({ error }));
 };

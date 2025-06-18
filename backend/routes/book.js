@@ -3,10 +3,11 @@ const router = express.Router();
 
 const auth = require('../middleware/auth');
 const multer = require('../middleware/multer-config');
+const resizeImage = require('../middleware/resizeImage');
 const bookCtrl = require('../controllers/book');
 
 //--- Create (Authentified)
-router.post('/', auth, multer, bookCtrl.createBook);
+router.post('/', auth, multer, resizeImage, bookCtrl.createBook);
 router.post('/:id/rating', auth, bookCtrl.rateBook);
 
 //--- Read (Public routes)
@@ -17,7 +18,7 @@ router.get('/bestrating', bookCtrl.readBestRatedBooks);
 router.get('/:id', bookCtrl.readOneBook);
 
 //--- Update (Authentified)
-router.put('/:id', auth, multer, bookCtrl.updateBook)
+router.put('/:id', auth, multer, resizeImage, bookCtrl.updateBook)
 
 //--- Delete (Authentified)
 router.delete('/:id', auth, bookCtrl.deleteBook);
