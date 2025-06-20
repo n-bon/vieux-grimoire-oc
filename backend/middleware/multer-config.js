@@ -9,4 +9,12 @@ const MIME_TYPES = {
 
 const storage = multer.memoryStorage();
 
-module.exports = multer({storage: storage}).single('image');
+const fileFilter = (req, file, callback) => {
+    if (MIME_TYPES[file.mimetype]) {
+        callback(null, true);
+    } else {
+        callback(new Error('Unsupported file format'), false);
+    }
+};
+
+module.exports = multer({storage: storage, fileFilter: fileFilter}).single('image');
